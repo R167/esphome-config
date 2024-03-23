@@ -1,0 +1,95 @@
+substitutions:
+  name: s31-plug
+  friendly_name: S31 Plug
+  update_interval: 2s
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp8266:
+  board: esp01_1m
+
+packages:
+  core: !include ../common/core.yaml
+
+# Enable logging
+logger:
+  baud_rate: 0 # disabel UART logging since it interferes with cse7766
+
+# Enable Home Assistant API
+api:
+  reboot_timeout: 0s
+
+prometheus:
+
+web_server:
+  port: 80
+
+# Device Specific Config
+uart:
+  rx_pin: RX
+  baud_rate: 4800
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+      inverted: True
+    name: "button"
+    on_press:
+      - switch.toggle: relay
+  - platform: status
+    name: "status"
+
+sensor:
+  - platform: wifi_signal
+    name: "wifi_signal"
+    update_interval: 60s
+  - platform: cse7766
+    current:
+      name: "current"
+      accuracy_decimals: 1
+      unit_of_measurement: A
+      filters:
+        - throttle_average: $update_interval
+    voltage:
+      name: "voltage"
+      accuracy_decimals: 1
+      unit_of_measurement: V
+      filters:
+        - throttle_average: $update_interval
+    power:
+      name: "power"
+      accuracy_decimals: 1
+      unit_of_measurement: W
+      id: power
+      filters:
+        - timeout: # force the sensor to display 0 when power resets
+            timeout: $update_interval
+            value: 0.0
+        - throttle_average: $update_interval
+    energy:
+      name: "energy_total"
+      unit_of_measurement: Wh
+      accuracy_decimals: 3
+      filters:
+        - throttle: $update_interval
+  - platform: integration
+    name: "integrated_energy_total"
+    sensor: power
+    time_unit: h
+    unit_of_measurement: Wh
+
+switch:
+  - platform: gpio
+    name: "relay"
+    pin: GPIO12
+    id: relay
+    restore_mode: ALWAYS_ON
+
+status_led:
+  pin:
+    number: GPIO13
+    inverted: true
