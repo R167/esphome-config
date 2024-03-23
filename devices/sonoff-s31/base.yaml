@@ -96,7 +96,7 @@ sensor:
       accuracy_decimals: 1
       filters:
         - throttle: ${update_interval}
-        - multiply: 0.0002777777778 # convert Wh to J
+        - multiply: 3600 # convert Wh to J
   - platform: integration
     name: Integrated Energy
     id: integrated_joules_total
