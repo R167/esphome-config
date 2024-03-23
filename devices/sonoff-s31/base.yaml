@@ -99,7 +99,8 @@ sensor:
         - multiply: 0.0002777777778 # convert Wh to J
   - platform: integration
     name: Integrated Energy
-    sensor: integrated_joules_total
+    id: integrated_joules_total
+    sensor: pm_watts
     time_unit: s
     accuracy_decimals: 1
     unit_of_measurement: J
