@@ -1,11 +1,16 @@
 substitutions:
   name: s31-plug
   friendly_name: S31 Plug
-  update_interval: 2s
+  # note: if you're going to scrape the data from this sensor, ensure this is a multiple of the scrape interval
+  update_interval: 5s
 
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
+
+  project:
+    name: Sonoff S31 Plug
+    version: "0.1.0"
 
 esp8266:
   board: esp01_1m
@@ -21,6 +26,10 @@ logger:
 api:
   reboot_timeout: 0s
 
+# The prometheus componet exposes the data to be scraped by prometheus. To best support
+# prometheus norms, ensure
+# - the update_interval is a multiple of the scrape interval
+# - when creating IDs, name them so they can be renamed with metric_relabel_configs
 prometheus:
 
 web_server:
@@ -38,10 +47,12 @@ binary_sensor:
       mode: INPUT_PULLUP
       inverted: True
     name: "button"
+    id: button
     on_press:
       - switch.toggle: relay
   - platform: status
-    name: "status"
+    name: "Connection Status"
+    id: connect_status
 
 sensor:
   - platform: wifi_signal
@@ -49,42 +60,47 @@ sensor:
     update_interval: 60s
   - platform: cse7766
     current:
-      name: "current"
+      id: pm_amperes
+      name: Current
       accuracy_decimals: 1
       unit_of_measurement: A
       filters:
-        - throttle_average: $update_interval
+        - throttle_average: ${update_interval}
     voltage:
-      name: "voltage"
+      id: pm_volts
+      name: Voltage
       accuracy_decimals: 1
       unit_of_measurement: V
       filters:
-        - throttle_average: $update_interval
+        - throttle_average: ${update_interval}
     power:
-      name: "power"
+      id: pm_watts
+      name: Power
       accuracy_decimals: 1
       unit_of_measurement: W
-      id: power
       filters:
         - timeout: # force the sensor to display 0 when power resets
-            timeout: $update_interval
+            timeout: ${update_interval}
             value: 0.0
-        - throttle_average: $update_interval
+        - throttle_average: ${update_interval}
     energy:
-      name: "energy_total"
-      unit_of_measurement: Wh
-      accuracy_decimals: 3
+      name: Energy
+      id: pm_joules_total
+      unit_of_measurement: J
+      accuracy_decimals: 1
       filters:
-        - throttle: $update_interval
+        - throttle: ${update_interval}
+        - multiply: 0.0002777777778 # convert Wh to J
   - platform: integration
-    name: "integrated_energy_total"
-    sensor: power
-    time_unit: h
-    unit_of_measurement: Wh
+    name: Integrated Energy
+    sensor: integrated_joules_total
+    time_unit: s
+    accuracy_decimals: 1
+    unit_of_measurement: J
 
 switch:
   - platform: gpio
-    name: "relay"
+    name: Relay
     pin: GPIO12
     id: relay
     restore_mode: ALWAYS_ON
