@@ -53,6 +53,11 @@ binary_sensor:
   - platform: status
     name: "Connection Status"
     id: connect_status
+  - platform: template
+    name: "Power status"
+    id: plug
+    lambda: |-
+      return id(relay).state;
 
 sensor:
   - platform: wifi_signal
