@@ -9,7 +9,7 @@ esphome:
   friendly_name: ${friendly_name}
 
   project:
-    name: Sonoff S31 Plug
+    name: R167.sonoff_s31_plug
     version: "0.1.0"
 
 esp8266:
