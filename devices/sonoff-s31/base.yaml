@@ -29,8 +29,17 @@ api:
 # The prometheus componet exposes the data to be scraped by prometheus. To best support
 # prometheus norms, ensure
 # - the update_interval is a multiple of the scrape interval
-# - when creating IDs, name them so they can be renamed with metric_relabel_configs
+# - annoyingly, it looks like the id is derived from the friendly_name, so we need to set it explicitly
 prometheus:
+  relabel:
+    plug: {id: "plug"}
+    pm_amperes: {id: "pm_amperes"}
+    pm_volts: {id: "pm_volts"}
+    pm_watts: {id: "pm_watts"}
+    pm_joules_total: {id: "pm_joules_total"}
+    integrated_joules_total: {id: "integrated_joules_total"}
+    button: {id: "button"}
+    connect_status: {id: "connect_status"}
 
 web_server:
   port: 80
@@ -46,7 +55,7 @@ binary_sensor:
       number: GPIO0
       mode: INPUT_PULLUP
       inverted: True
-    name: "button"
+    name: "Power button"
     id: button
     on_press:
       - switch.toggle: relay
