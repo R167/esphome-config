@@ -1,0 +1,19 @@
+substitutions:
+  # Device name - CHANGE ME
+  name: example-name
+  # Friendly device name - CHANGE ME
+  friendly_name: Example Frieldy Name
+  # Frequency to refresh stats. If scraping with Prometheus, ensure this is a divisor of your scrape_interval
+  update_interval: 1s
+
+packages:
+  s31_base: # Base config from this repo. You can reduce the update frequency or change the ref
+    url: https://github.com/R167/esphome-config
+    ref: master
+    file: devices/sonoff-s31/base.yaml
+    refresh: 0s
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
