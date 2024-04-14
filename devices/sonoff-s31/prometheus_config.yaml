@@ -1,0 +1,20 @@
+# Here is an example scrape job configuration for the Sonoff S31 Plug running ESPHome.
+- job_name: powermon_esphome
+  scheme: http
+  static_configs:
+  - targets:
+    - "<IP for Sonoff S31 Plug>"
+  metric_relabel_configs:
+  - source_labels: [__name__] # Get rid of the failed sensor counts
+    regex: 'esphome_.*_failed'
+    action: drop
+  - source_labels: [__name__, id] # Rename the sensor values to be more descriptive
+    regex: 'esphome_sensor_value;(.*)'
+    replacement: 'esphome_sensor_${1}'
+    target_label: __name__
+    action: replace
+  - source_labels: [__name__, id] # Rename the binary sensor values to be more descriptive
+    regex: 'esphome_binary_sensor_value;(.*)'
+    replacement: 'esphome_${1}_state'
+    target_label: __name__
+    action: replace
