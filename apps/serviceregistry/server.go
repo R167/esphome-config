@@ -94,6 +94,8 @@ func (r *ConfigRegistry) Mux() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /register", r.registerHandler)
 	mux.HandleFunc("GET /config", renderJSON(r.Config))
+	mux.HandleFunc("GET /health", r.healthHandler)
+	mux.HandleFunc("GET /metrics", renderJSON(r.Metrics))
 	return mux
 }
 
@@ -108,6 +110,17 @@ func renderJSON[T any](f func() T) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 		w.Write(resp)
 	}
+}
+
+func (r *ConfigRegistry) healthHandler(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	
+	r.m.RLock()
+	registrySize := len(r.Registry)
+	r.m.RUnlock()
+	
+	fmt.Fprintf(w, `{"status":"healthy","registry_size":%d}`, registrySize)
 }
 
 func jsonError(w http.ResponseWriter, err error) {

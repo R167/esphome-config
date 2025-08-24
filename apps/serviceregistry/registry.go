@@ -218,3 +218,33 @@ func (r *ConfigRegistry) saveToFile() {
 
 	r.logger.Debug("saved registry to file", slog.String("file", r.persistenceFile), slog.Int("count", len(endpoints)))
 }
+
+// RegistryMetrics contains metrics about the registry
+type RegistryMetrics struct {
+	TotalEndpoints int           `json:"total_endpoints"`
+	ActiveEndpoints int          `json:"active_endpoints"`
+	TTL            time.Duration `json:"ttl_seconds"`
+	PersistenceEnabled bool     `json:"persistence_enabled"`
+}
+
+// Metrics returns current registry metrics
+func (r *ConfigRegistry) Metrics() RegistryMetrics {
+	r.m.RLock()
+	defer r.m.RUnlock()
+	
+	total := len(r.Registry)
+	active := 0
+	
+	for _, e := range r.Registry {
+		if e.LastUpdated().IsZero() || time.Since(e.LastUpdated()) <= r.Ttl {
+			active++
+		}
+	}
+	
+	return RegistryMetrics{
+		TotalEndpoints: total,
+		ActiveEndpoints: active,
+		TTL: r.Ttl,
+		PersistenceEnabled: r.persistenceFile != "",
+	}
+}
