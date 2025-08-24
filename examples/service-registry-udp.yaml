@@ -1,5 +1,5 @@
 # ESPHome Service Registry UDP Client Example
-# This example shows how to register with a service registry using UDP
+# This example shows how to use the UDP service registry module
 # Ultra-minimal flash footprint for extremely memory-constrained devices
 
 substitutions:
@@ -8,15 +8,18 @@ substitutions:
   # Service registry configuration
   registry_host: "192.168.1.10"  # Change to your registry server IP
   registry_port: "8081"
+  registry_interval_ms: "30000"  # 30 seconds in milliseconds
   device_labels: "type:sensor,location:demo"
 
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
-  platform: ESP8266
+
+esp8266:
   board: nodemcuv2
-  includes:
-    - udp_registry_client.h
+
+packages:
+  service_registry: !include ../devices/common/service-registry-udp.yaml
 
 wifi:
   ssid: !secret wifi_ssid
@@ -25,16 +28,6 @@ wifi:
 logger:
 
 api:
-
-# Custom UDP client component
-custom_component:
-  - lambda: |-
-      auto udp_client = new UDPRegistryClient();
-      udp_client->set_registry_host("${registry_host}");
-      udp_client->set_registry_port(${registry_port});
-      udp_client->set_device_name("${name}");
-      udp_client->set_device_labels("${device_labels}");
-      return {udp_client};
 
 # Example sensor to provide some metrics
 sensor:

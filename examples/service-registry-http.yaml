@@ -1,6 +1,5 @@
 # ESPHome Service Registry HTTP Client Example
-# This example shows how to automatically register with a service registry using HTTP
-# Minimal flash footprint approach for memory-constrained devices
+# This example shows how to use the HTTP service registry module
 
 substitutions:
   name: "registry-demo-http"
@@ -8,18 +7,18 @@ substitutions:
   # Service registry configuration
   registry_host: "192.168.1.10"  # Change to your registry server IP
   registry_port: "8080"
+  registry_interval: "30s"
   device_labels: "type:sensor,location:demo"
 
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
-  platform: ESP8266
+
+esp8266:
   board: nodemcuv2
 
-# Keep SSL disabled for smaller binary size
-http_request:
-  esp8266_disable_ssl_support: true
-  timeout: 5s
+packages:
+  service_registry: !include ../devices/common/service-registry-http.yaml
 
 wifi:
   ssid: !secret wifi_ssid
@@ -28,24 +27,6 @@ wifi:
 logger:
 
 api:
-
-# Register with service registry on boot and periodically
-interval:
-  - interval: 3min  # Re-register every 3 minutes (less than server 10min TTL)
-    then:
-      - http_request.post:
-          url: "http://${registry_host}:${registry_port}/register?host=${name}.local:80&name=${name}&label=${device_labels}"
-          headers:
-            Content-Type: "application/x-www-form-urlencoded"
-
-# Also register on WiFi connection
-wifi:
-  on_connect:
-    - delay: 10s  # Wait for mDNS to be ready
-    - http_request.post:
-        url: "http://${registry_host}:${registry_port}/register?host=${name}.local:80&name=${name}&label=${device_labels}"
-        headers:
-          Content-Type: "application/x-www-form-urlencoded"
 
 # Example sensor to provide some metrics
 sensor:

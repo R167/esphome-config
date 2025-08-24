@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -45,7 +46,10 @@ func (r *ConfigRegistry) registerHandler(w http.ResponseWriter, req *http.Reques
 	// Send a response back to the client
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"success":true}`))
+	if _, err := w.Write([]byte(`{"success":true}`)); err != nil {
+		// Connection likely closed, log at debug level
+		slog.Debug("failed to write response", slog.String("error", err.Error()))
+	}
 }
 
 func parseEndpoint(q url.Values) (endpoint, error) {
@@ -108,7 +112,10 @@ func renderJSON[T any](f func() T) http.HandlerFunc {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(resp)
+		if _, err := w.Write(resp); err != nil {
+			// Connection likely closed, log at debug level
+			slog.Debug("failed to write JSON response", slog.String("error", err.Error()))
+		}
 	}
 }
 
@@ -120,7 +127,9 @@ func (r *ConfigRegistry) healthHandler(w http.ResponseWriter, req *http.Request)
 	registrySize := len(r.Registry)
 	r.m.RUnlock()
 	
-	fmt.Fprintf(w, `{"status":"healthy","registry_size":%d}`, registrySize)
+	if _, err := fmt.Fprintf(w, `{"status":"healthy","registry_size":%d}`, registrySize); err != nil {
+		slog.Debug("failed to write health response", slog.String("error", err.Error()))
+	}
 }
 
 func jsonError(w http.ResponseWriter, err error) {
@@ -128,5 +137,7 @@ func jsonError(w http.ResponseWriter, err error) {
 	var httpErr httpError
 	errors.As(err, &httpErr)
 	w.WriteHeader(httpErr.Code())
-	fmt.Fprintf(w, `{"success":false,"error":"%q"}`, err)
+	if _, writeErr := fmt.Fprintf(w, `{"success":false,"error":"%q"}`, err); writeErr != nil {
+		slog.Debug("failed to write error response", slog.String("error", writeErr.Error()))
+	}
 }

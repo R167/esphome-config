@@ -25,6 +25,19 @@ esp8266:
 
 packages:
   core: !include ../common/core.yaml
+  # Optional service registry auto-registration
+  # Uncomment one of the following and configure substitutions above
+  # HTTP service registry (recommended, +23KB flash)
+  # service_registry: !include
+  #   file: ../common/service-registry-http.yaml
+  #   vars:
+  #     registry_interval: ${registry_interval}
+  
+  # UDP service registry (ultra-lightweight, <5KB flash)
+  # service_registry: !include
+  #   file: ../common/service-registry-udp.yaml
+  #   vars:
+  #     registry_interval_ms: "30000"  # 30 seconds in milliseconds
 
 # Enable logging
 logger:
@@ -135,17 +148,3 @@ status_led:
     number: GPIO13
     inverted: true
 
-# Optional service registry auto-registration
-# Uncomment one of the following packages and configure substitutions above
-packages:
-  # HTTP service registry (recommended, +23KB flash)
-  # service_registry: !include
-  #   file: ../common/service-registry-http.yaml
-  #   vars:
-  #     registry_interval: ${registry_interval}
-  
-  # UDP service registry (ultra-lightweight, <5KB flash)
-  # service_registry: !include
-  #   file: ../common/service-registry-udp.yaml
-  #   vars:
-  #     registry_interval_ms: "30000"  # 30 seconds in milliseconds

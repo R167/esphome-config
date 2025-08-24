@@ -176,12 +176,13 @@ func TestUDPServerLifecycle(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	// Check that the endpoint was registered
-	if len(registry.Registry) != 1 {
-		t.Errorf("expected 1 registered endpoint, got %d", len(registry.Registry))
+	config := registry.Config()
+	if len(config) != 1 {
+		t.Errorf("expected 1 registered endpoint, got %d", len(config))
 		return
 	}
 
-	endpoint, exists := registry.Registry["udp-test-device"]
+	endpoint, exists := registry.GetEndpoint("udp-test-device")
 	if !exists {
 		t.Error("endpoint should be registered with name 'udp-test-device'")
 		return

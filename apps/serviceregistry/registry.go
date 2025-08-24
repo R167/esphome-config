@@ -51,10 +51,10 @@ type Endpoint interface {
 }
 
 type endpoint struct {
-	host     string            `json:"host"`
-	name     string            `json:"name"`
-	lastSeen time.Time         `json:"last_seen"`
-	labels   map[string]string `json:"labels"`
+	host     string
+	name     string
+	lastSeen time.Time
+	labels   map[string]string
 }
 
 func (e endpoint) Target() Target {
@@ -163,6 +163,15 @@ func (r *ConfigRegistry) Config() []Target {
 	return cfgs
 }
 
+// GetEndpoint safely retrieves an endpoint by name
+func (r *ConfigRegistry) GetEndpoint(name string) (Endpoint, bool) {
+	r.m.RLock()
+	defer r.m.RUnlock()
+	
+	endpoint, exists := r.Registry[name]
+	return endpoint, exists
+}
+
 // loadFromFile loads the registry state from the persistence file
 func (r *ConfigRegistry) loadFromFile() {
 	if r.persistenceFile == "" {
@@ -177,17 +186,30 @@ func (r *ConfigRegistry) loadFromFile() {
 		return
 	}
 
-	var endpoints map[string]endpoint
-	if err := json.Unmarshal(data, &endpoints); err != nil {
+	var persistenceEndpoints map[string]persistenceEndpoint
+	if err := json.Unmarshal(data, &persistenceEndpoints); err != nil {
 		r.logger.Error("failed to unmarshal persistence file", slog.String("file", r.persistenceFile), slog.String("error", err.Error()))
 		return
 	}
 
 	r.Registry = make(map[string]Endpoint)
-	for k, e := range endpoints {
-		r.Registry[k] = e
+	for k, pe := range persistenceEndpoints {
+		r.Registry[k] = endpoint{
+			host:     pe.Host,
+			name:     pe.Name,
+			lastSeen: pe.LastSeen,
+			labels:   pe.Labels,
+		}
 	}
-	r.logger.Info("loaded registry from file", slog.String("file", r.persistenceFile), slog.Int("count", len(endpoints)))
+	r.logger.Info("loaded registry from file", slog.String("file", r.persistenceFile), slog.Int("count", len(persistenceEndpoints)))
+}
+
+// persistenceEndpoint is used for JSON serialization
+type persistenceEndpoint struct {
+	Host     string            `json:"host"`
+	Name     string            `json:"name"`
+	LastSeen time.Time         `json:"last_seen"`
+	Labels   map[string]string `json:"labels"`
 }
 
 // saveToFile saves the current registry state to the persistence file
@@ -197,10 +219,15 @@ func (r *ConfigRegistry) saveToFile() {
 	}
 
 	r.m.RLock()
-	endpoints := make(map[string]endpoint)
+	endpoints := make(map[string]persistenceEndpoint)
 	for k, e := range r.Registry {
 		if ep, ok := e.(endpoint); ok {
-			endpoints[k] = ep
+			endpoints[k] = persistenceEndpoint{
+				Host:     ep.host,
+				Name:     ep.name,
+				LastSeen: ep.lastSeen,
+				Labels:   ep.labels,
+			}
 		}
 	}
 	r.m.RUnlock()
