@@ -3,6 +3,8 @@ substitutions:
   friendly_name: S31 Plug
   # note: if you're going to scrape the data from this sensor, ensure this is a multiple of the scrape interval
   update_interval: 5s
+  # Boot behavior: ALWAYS_ON, ALWAYS_OFF, RESTORE_DEFAULT_ON, RESTORE_DEFAULT_OFF
+  boot_state: ALWAYS_ON
 
 esphome:
   name: ${name}
@@ -120,7 +122,7 @@ switch:
     name: Relay
     pin: GPIO12
     id: relay
-    restore_mode: ALWAYS_ON
+    restore_mode: ${boot_state}
 
 status_led:
   pin:

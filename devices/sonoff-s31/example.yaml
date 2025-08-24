@@ -5,6 +5,9 @@ substitutions:
   friendly_name: Example Frieldy Name
   # Frequency to refresh stats. If scraping with Prometheus, ensure this is a divisor of your scrape_interval
   update_interval: 1s
+  # Boot behavior - uncomment to set devices that should stay off after power outage
+  # Useful for non-essential devices like lamps, fans, etc.
+  # boot_state: ALWAYS_OFF
 
 packages:
   s31_base: # Base config from this repo. You can reduce the update frequency or change the ref
