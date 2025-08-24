@@ -24,7 +24,7 @@ type Config struct {
 
 func main() {
 	var config Config
-	
+
 	// Parse command line flags
 	flag.IntVar(&config.HTTPPort, "http-port", 8080, "HTTP server port")
 	flag.IntVar(&config.UDPPort, "udp-port", 8081, "UDP server port")
@@ -34,12 +34,12 @@ func main() {
 	flag.Parse()
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	
+
 	// Create registry
 	var registry *serviceregistry.ConfigRegistry
 	if config.PersistenceFile != "" {
 		registry = serviceregistry.NewConfigRegistryWithPersistence(config.TTL, config.PersistenceFile)
-		logger.Info("registry created with persistence", 
+		logger.Info("registry created with persistence",
 			slog.String("file", config.PersistenceFile),
 			slog.Duration("ttl", config.TTL))
 	} else {
@@ -78,10 +78,10 @@ func main() {
 		<-sigChan
 		logger.Info("shutting down server")
 		cancel() // Cancel cleanup goroutine
-		
+
 		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer shutdownCancel()
-		
+
 		if err := server.Shutdown(shutdownCtx); err != nil {
 			logger.Error("server shutdown error", slog.String("error", err.Error()))
 		}
@@ -92,6 +92,6 @@ func main() {
 		logger.Error("HTTP server error", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
-	
+
 	logger.Info("server stopped")
 }

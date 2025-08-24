@@ -63,7 +63,7 @@ func parseEndpoint(q url.Values) (endpoint, error) {
 	if e.name == "" {
 		e.name = e.host
 	}
-	
+
 	// Add device name and host as labels for better Prometheus identification
 	if e.name != "" && e.name != e.host {
 		e.labels["device_name"] = e.name
@@ -122,11 +122,11 @@ func renderJSON[T any](f func() T) http.HandlerFunc {
 func (r *ConfigRegistry) healthHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	
+
 	r.m.RLock()
 	registrySize := len(r.Registry)
 	r.m.RUnlock()
-	
+
 	if _, err := fmt.Fprintf(w, `{"status":"healthy","registry_size":%d}`, registrySize); err != nil {
 		slog.Debug("failed to write health response", slog.String("error", err.Error()))
 	}

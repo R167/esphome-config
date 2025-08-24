@@ -46,7 +46,7 @@ func (u *UDPServer) Listen(port int) error {
 
 	// Start handling packets
 	go u.handlePackets()
-	
+
 	return nil
 }
 
@@ -69,7 +69,7 @@ func (u *UDPServer) handlePackets() {
 			return // Shutdown signal received
 		default:
 		}
-		
+
 		// Set read timeout to allow checking for shutdown
 		u.conn.SetReadDeadline(time.Now().Add(1 * time.Second))
 		n, clientAddr, err := u.conn.ReadFromUDP(buffer)
@@ -85,13 +85,13 @@ func (u *UDPServer) handlePackets() {
 		}
 
 		packet := string(buffer[:n])
-		u.logger.Debug("received UDP packet", 
+		u.logger.Debug("received UDP packet",
 			slog.String("from", clientAddr.String()),
 			slog.String("data", packet))
 
 		endpoint, err := parseUDPPacket(packet, clientAddr)
 		if err != nil {
-			u.logger.Error("failed to parse UDP packet", 
+			u.logger.Error("failed to parse UDP packet",
 				slog.String("from", clientAddr.String()),
 				slog.String("packet", packet),
 				slog.String("error", err.Error()))
@@ -118,7 +118,7 @@ func parseUDPPacket(packet string, clientAddr *net.UDPAddr) (endpoint, error) {
 
 	host := parts[1]
 	name := parts[2]
-	
+
 	// If host is empty, use client address
 	if host == "" {
 		host = clientAddr.IP.String()
@@ -135,7 +135,7 @@ func parseUDPPacket(packet string, clientAddr *net.UDPAddr) (endpoint, error) {
 	if e.name == "" {
 		e.name = e.host
 	}
-	
+
 	// Add device name and host as labels for better Prometheus identification
 	if e.name != "" && e.name != e.host {
 		e.labels["device_name"] = e.name
@@ -152,20 +152,20 @@ func parseUDPPacket(packet string, clientAddr *net.UDPAddr) (endpoint, error) {
 			if len(kv) != 2 || len(kv[0]) == 0 {
 				return endpoint{}, fmt.Errorf("invalid label format %q", labelPair)
 			}
-			
+
 			key := kv[0]
 			value := kv[1]
-			
+
 			if len(value) == 0 {
 				continue
 			}
-			
+
 			// Apply same label sanitization as HTTP endpoint
 			if !startMatcher.MatchString(key) {
 				key = "_" + key[1:]
 			}
 			key = illegalMatcher.ReplaceAllString(key, "_")
-			
+
 			e.labels[key] = value
 		}
 	}

@@ -80,24 +80,24 @@ func (r *ConfigRegistry) Register(e Endpoint) {
 	if r.Registry == nil {
 		r.Registry = make(map[string]Endpoint)
 	}
-	
+
 	_, wasRegistered := r.Registry[e.Name()]
 	r.Registry[e.Name()] = e
-	
+
 	if wasRegistered {
-		r.logger.Info("endpoint re-registered", 
+		r.logger.Info("endpoint re-registered",
 			slog.String("name", e.Name()),
 			slog.String("target", e.Target().Targets[0]),
 			slog.Any("labels", e.Target().Labels),
 			slog.Time("last_update", e.LastUpdated()))
 	} else {
-		r.logger.Info("endpoint registered", 
+		r.logger.Info("endpoint registered",
 			slog.String("name", e.Name()),
 			slog.String("target", e.Target().Targets[0]),
 			slog.Any("labels", e.Target().Labels),
 			slog.Time("last_update", e.LastUpdated()))
 	}
-	
+
 	// Save to file after registration
 	go r.saveToFile()
 }
@@ -131,7 +131,7 @@ func (r *ConfigRegistry) Cleaner(ctx context.Context) {
 func (r *ConfigRegistry) ExpireEntries() {
 	r.m.Lock()
 	defer r.m.Unlock()
-	
+
 	expired := []string{}
 	for k, e := range r.Registry {
 		if !e.LastUpdated().IsZero() && time.Since(e.LastUpdated()) > r.Ttl {
@@ -139,9 +139,9 @@ func (r *ConfigRegistry) ExpireEntries() {
 			delete(r.Registry, k)
 		}
 	}
-	
+
 	if len(expired) > 0 {
-		r.logger.Info("expired endpoints", 
+		r.logger.Info("expired endpoints",
 			slog.Int("count", len(expired)),
 			slog.Any("endpoints", expired),
 			slog.Duration("ttl", r.Ttl))
@@ -167,7 +167,7 @@ func (r *ConfigRegistry) Config() []Target {
 func (r *ConfigRegistry) GetEndpoint(name string) (Endpoint, bool) {
 	r.m.RLock()
 	defer r.m.RUnlock()
-	
+
 	endpoint, exists := r.Registry[name]
 	return endpoint, exists
 }
@@ -248,30 +248,30 @@ func (r *ConfigRegistry) saveToFile() {
 
 // RegistryMetrics contains metrics about the registry
 type RegistryMetrics struct {
-	TotalEndpoints int           `json:"total_endpoints"`
-	ActiveEndpoints int          `json:"active_endpoints"`
-	TTL            time.Duration `json:"ttl_seconds"`
-	PersistenceEnabled bool     `json:"persistence_enabled"`
+	TotalEndpoints     int           `json:"total_endpoints"`
+	ActiveEndpoints    int           `json:"active_endpoints"`
+	TTL                time.Duration `json:"ttl_seconds"`
+	PersistenceEnabled bool          `json:"persistence_enabled"`
 }
 
 // Metrics returns current registry metrics
 func (r *ConfigRegistry) Metrics() RegistryMetrics {
 	r.m.RLock()
 	defer r.m.RUnlock()
-	
+
 	total := len(r.Registry)
 	active := 0
-	
+
 	for _, e := range r.Registry {
 		if e.LastUpdated().IsZero() || time.Since(e.LastUpdated()) <= r.Ttl {
 			active++
 		}
 	}
-	
+
 	return RegistryMetrics{
-		TotalEndpoints: total,
-		ActiveEndpoints: active,
-		TTL: r.Ttl,
+		TotalEndpoints:     total,
+		ActiveEndpoints:    active,
+		TTL:                r.Ttl,
 		PersistenceEnabled: r.persistenceFile != "",
 	}
 }

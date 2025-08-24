@@ -22,8 +22,8 @@ func TestParseUDPPacket(t *testing.T) {
 			name:   "basic registration",
 			packet: "REGISTER|192.168.1.100:80|kitchen-sensor|type:temperature,location:kitchen",
 			want: endpoint{
-				host:     "192.168.1.100:80",
-				name:     "kitchen-sensor",
+				host: "192.168.1.100:80",
+				name: "kitchen-sensor",
 				labels: map[string]string{
 					"device_name": "kitchen-sensor",
 					"instance":    "192.168.1.100:80",
@@ -106,7 +106,7 @@ func TestParseUDPPacket(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			got, err := parseUDPPacket(tc.packet, clientAddr)
-			
+
 			if tc.wantError {
 				if err == nil {
 					t.Errorf("expected error containing %q, got nil", tc.errorString)
@@ -117,7 +117,7 @@ func TestParseUDPPacket(t *testing.T) {
 				}
 				return
 			}
-			
+
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 				return
@@ -195,7 +195,7 @@ func TestUDPServerLifecycle(t *testing.T) {
 
 	expectedLabels := map[string]string{
 		"device_name": "udp-test-device",
-		"instance":    "192.168.1.200:80", 
+		"instance":    "192.168.1.200:80",
 		"type":        "test",
 		"protocol":    "udp",
 	}
@@ -219,12 +219,12 @@ func TestNewUDPServer(t *testing.T) {
 
 // Helper function to check if a string contains a substring
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && 
-		   (s == substr || 
-			len(s) > len(substr) && 
-			(s[:len(substr)] == substr || 
-			 s[len(s)-len(substr):] == substr || 
-			 containsMiddle(s, substr)))
+	return len(s) >= len(substr) &&
+		(s == substr ||
+			len(s) > len(substr) &&
+				(s[:len(substr)] == substr ||
+					s[len(s)-len(substr):] == substr ||
+					containsMiddle(s, substr)))
 }
 
 func containsMiddle(s, substr string) bool {
