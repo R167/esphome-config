@@ -1,0 +1,48 @@
+# ESPHome Service Registry HTTP Client Module
+# Include this in your device config to enable automatic service registration via HTTP
+#
+# Required substitutions:
+#   registry_host: IP address of service registry server
+#   registry_port: Port of service registry server (default: 8080)
+#   device_labels: Comma-separated labels for the device (e.g., "type:sensor,location:kitchen")
+#
+# Optional substitutions:
+#   registry_interval: Registration interval (default: 30s)
+
+# HTTP client component with SSL disabled for smaller binary size
+http_request:
+  esp8266_disable_ssl_support: true
+  timeout: 5s
+
+# Register with service registry on WiFi connection
+wifi:
+  on_connect:
+    - delay: 10s  # Wait for mDNS to be ready
+    - http_request.post:
+        url: "http://${registry_host}:${registry_port}/register?host=${name}.local:80&name=${name}&label=${device_labels}"
+        request_headers:
+          Content-Type: "application/x-www-form-urlencoded"
+        on_response:
+          then:
+            - logger.log:
+                level: INFO
+                format: "Registered with service registry: %s"
+                args: ['id(wifi).get_ip_address().str().c_str()']
+
+# Periodic re-registration to maintain presence in registry
+interval:
+  - interval: ${registry_interval}
+    then:
+      - if:
+          condition:
+            wifi.connected:
+          then:
+            - http_request.post:
+                url: "http://${registry_host}:${registry_port}/register?host=${name}.local:80&name=${name}&label=${device_labels}"
+                request_headers:
+                  Content-Type: "application/x-www-form-urlencoded"
+                on_response:
+                  then:
+                    - logger.log:
+                        level: DEBUG
+                        format: "Service registry heartbeat sent"

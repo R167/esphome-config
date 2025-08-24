@@ -1,0 +1,50 @@
+# HTTP registry client size test
+# Copy of HTTP example with test WiFi credentials
+
+substitutions:
+  name: "size-test-http"
+  friendly_name: "Size Test HTTP"
+  registry_host: "192.168.1.10"
+  registry_port: "8080"
+  device_labels: "type:sensor,location:demo"
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp8266:
+  board: nodemcuv2
+
+http_request:
+  esp8266_disable_ssl_support: true
+  timeout: 5s
+
+wifi:
+  ssid: "test-wifi"
+  password: "test-password"
+  on_connect:
+    - delay: 10s
+    - http_request.post:
+        url: "http://${registry_host}:${registry_port}/register?host=${name}.local:80&name=${name}&label=${device_labels}"
+        request_headers:
+          Content-Type: "application/x-www-form-urlencoded"
+
+logger:
+
+api:
+
+interval:
+  - interval: 3min
+    then:
+      - http_request.post:
+          url: "http://${registry_host}:${registry_port}/register?host=${name}.local:80&name=${name}&label=${device_labels}"
+          request_headers:
+            Content-Type: "application/x-www-form-urlencoded"
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    update_interval: 60s
+
+web_server:
+  port: 80
