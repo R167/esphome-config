@@ -96,6 +96,13 @@ func (c *Client) performLookup(ctx context.Context) error {
 				"addr_v6", entry.AddrV6,
 				"info", entry.Info,
 				"txt", entry.Info)
+
+			// Only process entries that match our target service type
+			if !strings.Contains(entry.Name, ServiceType) {
+				c.logger.Debug("skipping non-prometheus service", "name", entry.Name, "expected_service", ServiceType)
+				continue
+			}
+
 			c.manager.AddEntry(entry)
 		}
 	}()
