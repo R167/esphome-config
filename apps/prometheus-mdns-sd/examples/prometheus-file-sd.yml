@@ -1,0 +1,36 @@
+# Example Prometheus configuration using file service discovery  
+# Save as prometheus.yml and run: prometheus --config.file=prometheus.yml
+
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+scrape_configs:
+  # mDNS File Service Discovery
+  - job_name: 'mdns-file-discovered'
+    file_sd_configs:
+      - files: ['./mdns_targets.json']
+        refresh_interval: 30s
+    
+    # CRITICAL: Use the metrics path from mDNS TXT records
+    # Without this, Prometheus will use /metrics for all targets  
+    relabel_configs:
+      - source_labels: [__meta_metrics_path]
+        target_label: __metrics_path__
+        
+      # Add region as a regular label if provided via meta:region=VALUE
+      - source_labels: [__meta_region] 
+        target_label: region
+        
+      # Add datacenter as a regular label if provided via meta:datacenter=VALUE
+      - source_labels: [__meta_datacenter]
+        target_label: datacenter
+        
+      # Optional: Override job name if provided via label:job=VALUE
+      # Otherwise keeps the job_name from scrape config  
+      - source_labels: [job]
+        target_label: __tmp_job
+      - source_labels: [__tmp_job]
+        target_label: job
+        regex: '(.+)'
+        replacement: '${1}'

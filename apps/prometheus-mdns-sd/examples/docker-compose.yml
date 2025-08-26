@@ -1,0 +1,67 @@
+# Example Docker Compose setup for testing the mDNS service discovery
+# This sets up Prometheus with file-based service discovery
+
+version: '3.8'
+
+services:
+  # File-based mDNS service discovery
+  mdns-file-sd:
+    build:
+      context: ..
+      dockerfile: examples/Dockerfile.file-sd
+    volumes:
+      - ./targets:/data
+    command: [
+      "-output", "/data/mdns_targets.json",
+      "-interval", "30s", 
+      "-debug"
+    ]
+    network_mode: "host"  # Required for mDNS to work
+    restart: unless-stopped
+    
+  # HTTP-based mDNS service discovery (alternative)
+  mdns-http-sd:
+    build:
+      context: ..
+      dockerfile: examples/Dockerfile.http-sd
+    ports:
+      - "8080:8080"
+    command: [
+      "-port", "8080",
+      "-debug"  
+    ]
+    network_mode: "host"  # Required for mDNS to work
+    restart: unless-stopped
+    profiles: ["http-sd"]  # Only start with --profile http-sd
+    
+  # Prometheus using file service discovery
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus-file-sd.yml:/etc/prometheus/prometheus.yml:ro
+      - ./targets:/etc/prometheus/targets:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+
+volumes:
+  prometheus_data:
+
+# Usage:
+#   # File-based service discovery (default)
+#   docker-compose up
+#   
+#   # HTTP-based service discovery  
+#   docker-compose --profile http-sd up mdns-http-sd prometheus
+#   
+# Then advertise a test service:
+#   ./advertise-service.sh "Test Service" 9999 "/test/metrics"
+#
+# View discovered targets at:
+#   http://localhost:9090/targets
