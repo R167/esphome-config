@@ -109,14 +109,15 @@ func (c *Client) performLookup(ctx context.Context) error {
 
 	// Perform lookup
 	params := &mdns.QueryParam{
-		Service: ServiceType,
-		Domain:  "local",
-		Timeout: 3 * time.Second,
-		Entries: entriesCh,
-		Logger:  c.mdnsLogger,
+		Service:             ServiceType,
+		Domain:              "local",
+		Timeout:             3 * time.Second,
+		Entries:             entriesCh,
+		WantUnicastResponse: true,
+		Logger:              c.mdnsLogger,
 	}
 
-	err := mdns.Query(params)
+	err := mdns.QueryContext(ctx, params)
 	close(entriesCh)
 
 	if err != nil {
