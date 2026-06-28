@@ -60,8 +60,22 @@ binary_sensor:
       inverted: True
     name: "Power button"
     id: button
-    on_press:
-      - switch.toggle: relay
+    # Debounce contact bounce so the click-length detection is reliable
+    # (required for on_click as of ESPHome 2026.3).
+    filters:
+      - delayed_on_off: 20ms
+    on_click:
+      # Short tap (<1.5s): toggle the relay. Fires on release.
+      - min_length: 50ms
+        max_length: 1500ms
+        then:
+          - switch.toggle: relay
+      # Long hold (3-10s): restart the plug.
+      - min_length: 3000ms
+        max_length: 10000ms
+        then:
+          - logger.log: "Power button long-press — restarting"
+          - lambda: "App.safe_reboot();"
   - platform: status
     name: "Connection Status"
     id: connect_status

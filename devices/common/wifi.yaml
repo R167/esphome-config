@@ -3,7 +3,12 @@ wifi:
   ssid: initial_ap           # !secret my_wifi_ssid
   password: asdfasdfasdfasdf # !secret my_wifi_pass
 
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  # Mains-powered devices: keep the radio fully awake for a stable link
+  # (and so we drop into the fallback AP far less often in the first place).
+  power_save_mode: none
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails.
+  # The password is intentionally a well-known plaintext value.
   ap:
     ssid: "${friendly_name} Fallback Hotspot"
     password: "kCVtpHUJlsZO"
@@ -12,3 +17,21 @@ captive_portal:
 
 ota:
   - platform: esphome
+
+# Escape the fallback-AP lockup. Once the captive portal is up, wifi.reboot_timeout
+# is suspended by design ("Does not apply when in access point mode") and esp8266
+# AP+STA coexistence is unreliable, so a device can sit in the portal until it is
+# physically power-cycled. Periodically: if the fallback AP is active, reboot into a
+# clean STA-only attempt at the real network. 15min still leaves ample time to use
+# the portal to re-enter Wi-Fi credentials when that is what you actually want.
+# NB: reboot via lambda rather than a `button:` restart component — a button domain
+# collides with the prometheus `relabel: button:` key (cv.use_id) on ESPHome 2026.6.
+interval:
+  - interval: 15min
+    then:
+      - if:
+          condition:
+            wifi.ap_active:
+          then:
+            - logger.log: "Fallback AP active — rebooting to retry main Wi-Fi"
+            - lambda: "App.safe_reboot();"
