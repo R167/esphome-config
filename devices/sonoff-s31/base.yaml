@@ -40,7 +40,10 @@ prometheus:
     pm_watts: {id: "pm_watts"}
     pm_joules_total: {id: "pm_joules_total"}
     integrated_joules_total: {id: "integrated_joules_total"}
-    button: {id: "button"}
+    # keep the prometheus label id="button"; the relabel KEY must dodge the `button`
+    # component domain (cv.use_id collision on ESPHome 2026.6), so the entity is
+    # id: power_button and we relabel it back to "button" here.
+    power_button: {id: "button"}
     connect_status: {id: "connect_status"}
 
 web_server:
@@ -59,7 +62,9 @@ binary_sensor:
       mode: INPUT_PULLUP
       inverted: True
     name: "Power button"
-    id: button
+    # id is power_button (not "button") to avoid colliding with the button: restart
+    # domain in the prometheus relabel; relabelled back to "button" above.
+    id: power_button
     # Debounce contact bounce so the click-length detection is reliable
     # (required for on_click as of ESPHome 2026.3).
     filters:
@@ -75,7 +80,7 @@ binary_sensor:
         max_length: 10000ms
         then:
           - logger.log: "Power button long-press — restarting"
-          - lambda: "App.safe_reboot();"
+          - button.press: restart_button
   - platform: status
     name: "Connection Status"
     id: connect_status

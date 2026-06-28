@@ -24,8 +24,6 @@ ota:
 # physically power-cycled. Periodically: if the fallback AP is active, reboot into a
 # clean STA-only attempt at the real network. 15min still leaves ample time to use
 # the portal to re-enter Wi-Fi credentials when that is what you actually want.
-# NB: reboot via lambda rather than a `button:` restart component — a button domain
-# collides with the prometheus `relabel: button:` key (cv.use_id) on ESPHome 2026.6.
 interval:
   - interval: 15min
     then:
@@ -34,4 +32,14 @@ interval:
             wifi.ap_active:
           then:
             - logger.log: "Fallback AP active — rebooting to retry main Wi-Fi"
-            - lambda: "App.safe_reboot();"
+            - button.press: restart_button
+
+# Manual restart, exposed to Home Assistant; also the target of the Wi-Fi recovery
+# above and any device-specific physical-button long-press.
+# NB: a `button:` domain collides with a prometheus `relabel:` key literally named
+# `button` (relabel keys are cv.use_id-resolved) on ESPHome 2026.6 — devices that
+# relabel a `button` entity must key it under a different id (see sonoff-s31/base.yaml).
+button:
+  - platform: restart
+    id: restart_button
+    name: "Restart"
