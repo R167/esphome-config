@@ -1,0 +1,40 @@
+{
+  "storage_version": 1,
+  "name": "size-test-http",
+  "friendly_name": "Size Test HTTP",
+  "comment": null,
+  "esphome_version": "2025.8.0",
+  "src_version": 1,
+  "address": "size-test-http.local",
+  "web_port": 80,
+  "esp_platform": "ESP8266",
+  "build_path": "/Users/wmd/dev/esphome-config/examples/.esphome/build/size-test-http",
+  "firmware_bin_path": "/Users/wmd/dev/esphome-config/examples/.esphome/build/size-test-http/.pioenvs/size-test-http/firmware.bin",
+  "loaded_integrations": [
+    "api",
+    "async_tcp",
+    "esp8266",
+    "esphome",
+    "http_request",
+    "interval",
+    "json",
+    "logger",
+    "mdns",
+    "network",
+    "preferences",
+    "sensor",
+    "socket",
+    "substitutions",
+    "watchdog",
+    "web_server",
+    "web_server_base",
+    "wifi",
+    "wifi_signal"
+  ],
+  "loaded_platforms": [
+    "sensor/wifi_signal"
+  ],
+  "no_mdns": false,
+  "framework": "arduino",
+  "core_platform": "esp8266"
+}
