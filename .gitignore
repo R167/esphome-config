@@ -1,2 +1,27 @@
 secrets.yaml
 build/
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+service-registry
+apps/serviceregistry/service-registry
+
+# Go build artifacts
+/bin/
+/pkg/
+/vendor/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -5,6 +5,12 @@ substitutions:
   update_interval: 5s
   # Boot behavior: ALWAYS_ON, ALWAYS_OFF, RESTORE_DEFAULT_ON, RESTORE_DEFAULT_OFF
   boot_state: ALWAYS_ON
+  # Service registry configuration (optional)
+  # Uncomment and configure to enable automatic service registration
+  # registry_host: "192.168.1.10"
+  # registry_port: "8080"
+  # registry_interval: "30s"
+  # device_labels: "type:power,location:${friendly_name}"
 
 esphome:
   name: ${name}
@@ -19,6 +25,19 @@ esp8266:
 
 packages:
   core: !include ../common/core.yaml
+  # Optional service registry auto-registration
+  # Uncomment one of the following and configure substitutions above
+  # HTTP service registry (recommended, +23KB flash)
+  # service_registry: !include
+  #   file: ../common/service-registry-http.yaml
+  #   vars:
+  #     registry_interval: ${registry_interval}
+  
+  # UDP service registry (ultra-lightweight, <5KB flash)
+  # service_registry: !include
+  #   file: ../common/service-registry-udp.yaml
+  #   vars:
+  #     registry_interval_ms: "30000"  # 30 seconds in milliseconds
 
 # Enable logging
 logger:
@@ -147,3 +166,4 @@ status_led:
   pin:
     number: GPIO13
     inverted: true
+

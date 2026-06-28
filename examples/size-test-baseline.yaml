@@ -1,0 +1,29 @@
+# Baseline ESPHome configuration without service registry
+# Used to measure the baseline flash usage
+
+substitutions:
+  name: "size-test-baseline"
+  friendly_name: "Size Test Baseline"
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp8266:
+  board: nodemcuv2
+
+wifi:
+  ssid: "test-wifi"
+  password: "test-password"
+
+logger:
+
+api:
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    update_interval: 60s
+
+web_server:
+  port: 80

@@ -1,0 +1,26 @@
+# ESPHome Service Registry UDP Client Module
+# Include this in your device config to enable automatic service registration via UDP
+# Ultra-lightweight option for memory-constrained devices
+#
+# Required substitutions:
+#   registry_host: IP address of service registry server
+#   registry_port: Port of service registry server (default: 8081)
+#   device_labels: Comma-separated labels for the device (e.g., "type:sensor,location:kitchen")
+#
+# Optional substitutions:
+#   registry_interval: Registration interval (default: 3min)
+
+esphome:
+  includes:
+    - devices/common/udp_registry_client.h
+
+# Custom UDP client component for service registration
+custom_component:
+  - lambda: |-
+      auto udp_client = new UDPRegistryClient();
+      udp_client->set_registry_host("${registry_host}");
+      udp_client->set_registry_port(${registry_port});
+      udp_client->set_device_name("${name}");
+      udp_client->set_device_labels("${device_labels}");
+      udp_client->set_interval_ms(${registry_interval_ms});
+      return {udp_client};

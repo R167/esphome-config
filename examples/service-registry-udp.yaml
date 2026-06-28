@@ -1,0 +1,40 @@
+# ESPHome Service Registry UDP Client Example
+# This example shows how to use the UDP service registry module
+# Ultra-minimal flash footprint for extremely memory-constrained devices
+
+substitutions:
+  name: "registry-demo-udp"
+  friendly_name: "Registry Demo UDP"
+  # Service registry configuration
+  registry_host: "192.168.1.10"  # Change to your registry server IP
+  registry_port: "8081"
+  registry_interval_ms: "30000"  # 30 seconds in milliseconds
+  device_labels: "type:sensor,location:demo"
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp8266:
+  board: nodemcuv2
+
+packages:
+  service_registry: !include ../devices/common/service-registry-udp.yaml
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+logger:
+
+api:
+
+# Example sensor to provide some metrics
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    update_interval: 60s
+
+# Web server for Prometheus scraping
+web_server:
+  port: 80
